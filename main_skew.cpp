@@ -161,7 +161,7 @@ int main(int argc, char* argv[]) {
         
 
         //4. update sketch
-        ESketch *sketch = new ESketch(memory*1024,h_ratio,s_ratio,depth,frac);
+        SeiveSketch *sketch = new SeiveSketch(memory*1024,h_ratio,s_ratio,depth,frac);
         sketch->Reset();
         
         std::cout<<"updating"<<std::endl;

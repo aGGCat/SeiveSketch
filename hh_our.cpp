@@ -100,7 +100,7 @@ int main(int argc,char* argv[]) {
         std::cout << "[Message] True HHs: " << truth.size() << std::endl;
         avg_hh += truth.size();
 
-        ESketch *sketch = new ESketch(memory*1024, h_ratio, s_ratio, depth, frac);
+        SeiveSketch *sketch = new SeiveSketch(memory*1024, h_ratio, s_ratio, depth, frac);
         sketch->Reset();
 
         // Update sketch

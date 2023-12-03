@@ -102,8 +102,8 @@ int main(int argc,char* argv[]) {
 
         std::cout << "[Message] Threshold: " << HIT << std::endl;
 
-        ESketch *sketch1 = new ESketch(memory*1024, h_ratio, s_ratio, depth, frac);
-        ESketch *sketch2 = new ESketch(memory*1024, h_ratio, s_ratio, depth, frac);
+        SeiveSketch *sketch1 = new SeiveSketch(memory*1024, h_ratio, s_ratio, depth, frac);
+        SeiveSketch *sketch2 = new SeiveSketch(memory*1024, h_ratio, s_ratio, depth, frac);
         sketch1->Reset();
         sketch2->Reset();
 
