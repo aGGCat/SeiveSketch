@@ -26,3 +26,12 @@ hh_our: hh_our.cpp
 hc_our: hc_our.cpp
 	g++ $(CFLAGS) $(INCLUDES) -o $@ $< $(SRCCOM) $(LIBS)
 
+# cumulative distribution function of relative error (CDF_RE)
+
+cdf_our: cdf_our.cpp
+	g++ $(CFLAGS) $(INCLUDES) -o $@ $< $(SRCCOM) $(LIBS)
+
+# wmre of frequency distribution (flow size distribution )	
+
+fredist_our: fredist_our.cpp
+	g++ $(CFLAGS) $(INCLUDES) -o $@ $< $(SRCCOM) $(LIBS)
