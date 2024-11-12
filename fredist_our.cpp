@@ -18,8 +18,8 @@ int main(int argc,char* argv[]) {
     unsigned long long buf_size = 1000000000;
     int memory = atoi(argv[1]);
     int threshold = atoi(argv[2]);
-    double h_ratio = 0.2;
-    double s_ratio = 0.7;
+    double h_ratio = 0.3;
+    double s_ratio = 0.6;
     int depth = 3;//atoi(argv[5]);
     double frac = 0.6321;
     int trace = atoi(argv[3]);

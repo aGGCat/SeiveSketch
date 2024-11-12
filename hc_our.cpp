@@ -17,8 +17,8 @@ int main(int argc,char* argv[]) {
     unsigned long long buf_size = 1000000000;
     int memory = atoi(argv[1]);
     float threshold = 0.0005;//We set the HC threshold as 0.05% of total changes over two adjacent measurement epochs
-    double h_ratio = 0.2;
-    double s_ratio = 0.7;
+    double h_ratio = 0.3;
+    double s_ratio = 0.6;
     int depth = 3;//atoi(argv[5]);
     double frac = 0.6321;
     int trace = atoi(argv[2]);

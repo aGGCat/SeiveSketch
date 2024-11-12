@@ -20,8 +20,8 @@ int main(int argc, char* argv[]) {
 
     //sketch parameters
     int memory = atoi(argv[2]);
-    double h_ratio = 0.2;
-    double s_ratio = 0.7;
+    double h_ratio = 0.3;
+    double s_ratio = 0.6;
     int depth = 3;
     double frac = 0.6321;
    

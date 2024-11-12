@@ -1,5 +1,5 @@
-#ifndef ELASTIC_H
-#define ELASTIC_H
+#ifndef SEIVE_H
+#define SEIVE_H
 
 #include <utility>
 #include <algorithm>
@@ -19,7 +19,6 @@ extern "C"
 
 class SeiveSketch : public SketchBase {
     public:
-    int num_k = 0;
     struct Bucket
     {
         key_tp key[COUNTER_PER_BUCKET];
@@ -30,6 +29,7 @@ class SeiveSketch : public SketchBase {
         //heavy part
         int bucket_num;
         Bucket *buckets;
+        uint32_t *v_s;
         
         //layer 1 in small part
         int filter_num1;
@@ -58,8 +58,9 @@ class SeiveSketch : public SketchBase {
     };
 
     SeiveSketch(int memory, double h_ratio, double s_ratio, int depth, double frac) {
-        ss_.bucket_num = memory * h_ratio / (8 * COUNTER_PER_BUCKET);
+        ss_.bucket_num = memory * h_ratio / (8 * COUNTER_PER_BUCKET + 4);
         ss_.buckets = new Bucket[ss_.bucket_num]();
+        ss_.v_s = new uint32_t[ss_.bucket_num]();
         
         //filter setting
         ss_.filter_num1 =  memory * s_ratio * 0.65;
@@ -80,7 +81,7 @@ class SeiveSketch : public SketchBase {
         ss_.width = ss_.counter_num ;
         ss_.counters = new uint16_t[ss_.counter_num]();
 
-        std::cout<<ss_.bucket_num<<" "<<(ss_.filter_num1*2)<<" "<<" "<<ss_.filter_num2<<" "<<ss_.width<<std::endl; 
+        // std::cout<<ss_.bucket_num<<" "<<(ss_.filter_num1*2)<<" "<<" "<<ss_.filter_num2<<" "<<ss_.width<<std::endl; 
 
         ss_.lgn = sizeof(key_tp);
         ss_.hash = new unsigned long[ss_.depth]();
@@ -103,7 +104,7 @@ class SeiveSketch : public SketchBase {
         uint32_t min_counter_val = GetCounterVal(ss_.buckets[pos].val[0]);
         int min_counter = 0;
         int empty = -1;
-        for(int i = 0; i < COUNTER_PER_BUCKET - 1; i++){
+        for(int i = 0; i < COUNTER_PER_BUCKET; i++){
             if(ss_.buckets[pos].key[i] == key){
                 ss_.buckets[pos].val[i] += f;
                 return 0;
@@ -123,21 +124,20 @@ class SeiveSketch : public SketchBase {
             return 0;
         }
 
-        uint32_t guard_val = ss_.buckets[pos].val[MAX_VALID_COUNTER];
+        uint32_t guard_val = ss_.v_s[pos];
         guard_val = UPDATE_GUARD_VAL(guard_val);
 
         if(!JUDGE_IF_SWAP(GetCounterVal(min_counter_val), guard_val)){
-            ss_.buckets[pos].val[MAX_VALID_COUNTER] = guard_val;
+            ss_.v_s[pos] = guard_val;
             return 2;
         }
 
         swap_key = ss_.buckets[pos].key[min_counter];
         swap_val = ss_.buckets[pos].val[min_counter];
 
-        ss_.buckets[pos].val[MAX_VALID_COUNTER] = 0;
+        ss_.v_s[pos] = 0;
         ss_.buckets[pos].key[min_counter] = key;
         ss_.buckets[pos].val[min_counter] = 0x80000001;
-        // k++;
         return 1;
     }
 
@@ -430,8 +430,6 @@ class SeiveSketch : public SketchBase {
             }
            
             ss_.r0 /= 2;
-            std::cout<<num_k<<std::endl;
-            num_k = 0;
         }
     }
 
@@ -443,7 +441,6 @@ class SeiveSketch : public SketchBase {
         {
             case 0: return;
             case 1:{
-                num_k+= GetCounterVal(swap_val);
                 if(ss_.r0 == 1) {
                     LightPart_insert(swap_key, GetCounterVal(swap_val));
                 }
@@ -454,7 +451,6 @@ class SeiveSketch : public SketchBase {
                 return;
             }
             case 2:  {
-                num_k++;
                 if(ss_.r0 == 1) {
                     LightPart_insert(key, 1);
                 }
@@ -472,7 +468,7 @@ class SeiveSketch : public SketchBase {
 
     val_tp PointQuery(key_tp key) {
         int pos = CalculateFP(key);
-        for(int i = 0; i < COUNTER_PER_BUCKET - 1; i++){
+        for(int i = 0; i < COUNTER_PER_BUCKET; i++){
             if(ss_.buckets[pos].key[i] == key){
                 int res = ss_.buckets[pos].val[i];
                 if(HIGHEST_BIT_IS_1(res)) {
@@ -540,15 +536,15 @@ class SeiveSketch : public SketchBase {
     }
 
     uint change_val(uint val, double avg) {
-        uint res = 0;
-        double rate = 2;
-        if(val < ss_.T1) {
-            res = val / rate;
-        }
-        else {
-            uint est = val / rate;
-            res = std::min(est, (uint)ss_.T1); 
-        }
+        uint res = val / 2;
+        // double rate = 2;
+        // if(val < ss_.T1) {
+        //     res = val / rate;
+        // }
+        // else {
+        //     uint est = val / rate;
+        //     res = std::min(est, (uint)ss_.T1); 
+        // }
         if(res >= ss_.thre)
             ss_.ones++;
     
