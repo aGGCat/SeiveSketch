@@ -15,6 +15,8 @@ cdf_our.cpp: example about relative error cdf
 
 fredist_our.cpp: example about item frequency distribution
 
+Appendix.pdf: some supplements to the paper
+
 ## Compile and Run the examples
 SeiveSketch is implemented with C++. We show how to compile the examples on Ubuntu with g++ and make.
 
