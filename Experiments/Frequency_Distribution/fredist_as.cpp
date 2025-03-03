@@ -1,9 +1,9 @@
-#include "lib/inputadaptor.hpp"
-#include "lib/evaluation.hpp"
+#include "../../lib/inputadaptor.hpp"
+#include "../../lib/evaluation.hpp"
 #include <fstream>
 #include <iomanip>
 #include <unordered_map>
-#include "src/Ours.hpp"
+#include "../../src/AugmentedSketch.hpp"
 
 // caculate the wmre in the step of 
 double wmre_step(std::unordered_map<val_tp,val_tp> distall,std::unordered_map<val_tp,val_tp> estdist,int down, int up,int step);
@@ -11,19 +11,17 @@ double wmre_step(std::unordered_map<val_tp,val_tp> distall,std::unordered_map<va
 int main(int argc,char* argv[]) {
     // Configure parameters
     if (argc < 4) {
-        printf("Usage: %s [Memory(KB)] [Trace]\n", argv[0]);
+        printf("Usage: %s [Memory(KB)] [Trace] [Step]\n", argv[0]);
         return 0;
     }
 
     unsigned long long buf_size = 1000000000;
     int memory = atoi(argv[1]);
-    int threshold = atoi(argv[2]);
-    double h_ratio = 0.3;
-    double s_ratio = 0.6;
-    int depth = 3;//atoi(argv[5]);
-    double frac = 0.6321;
-    int trace = atoi(argv[3]);
-    int step =atoi(argv[4]); // the setting of step s 
+    int depth = 3;
+    int k_num = 32;
+    int width = (memory*1024 - 12 * k_num)/depth/4;
+    int trace = atoi(argv[2]);
+    int step =atoi(argv[3]); // the setting of step s 
     
     // pcap traces
     std::string dir,filelist;
@@ -63,8 +61,10 @@ int main(int argc,char* argv[]) {
 
 
     Evaluation *eva = new Evaluation();
-
+    double avg_wmre = 0;
+    int epoch = 0;
     for (std::string file; getline(tracefiles, file);) {
+        epoch++;
         InputAdaptor* adaptor =  new InputAdaptor(dir, file, buf_size);
         std::cout << "[Dataset]: " << dir << file << std::endl;
         std::cout << "[Message] Finish read data." << std::endl;
@@ -81,27 +81,18 @@ int main(int argc,char* argv[]) {
         }
         // std::cout << "[Message] Finish Insert hash table" << std::endl;
         std::cout << "[Message] Total packets: " << sum <<", distinct flows: "<<ground.size()<< std::endl;
-        
-        myvector truth;
 
         std::unordered_map<val_tp,val_tp> distall;// real flow size distribution
         distall.clear();
         int maxfre=0; // the max frequency
         for(auto it = ground.begin(); it != ground.end(); ++it) {
-            if(it->second > threshold) {
-                std::pair<key_tp, val_tp> node;
-                node.first = it->first;
-                node.second = it->second;
-                truth.push_back(node);
-                maxfre=maxfre<it->second?it->second:maxfre;
-            }
+            maxfre=maxfre<it->second?it->second:maxfre;
             distall[it->second]++; // update real fsd
             
         }
-        std::cout << "[Message] True HHs: " << truth.size() << std::endl;
 
 
-        SeiveSketch *sketch = new SeiveSketch(memory*1024, h_ratio, s_ratio, depth, frac);
+        ASketch *sketch = new ASketch(depth, width,k_num);
         sketch->Reset();
 
         // Update sketch
@@ -130,7 +121,7 @@ int main(int argc,char* argv[]) {
         // Analysis  Weighted Mean Relative Error (WMRE)  of flow size distribution (item frequency distribution)
 
         double wmre=wmre_step(distall,estdist,1,maxfre,step);
-
+        avg_wmre += wmre;
         std::cout << std::setw(20) << std::left << "Algorithm"
             << std::setw(20) << std::left << "Memory"
             << std::setw(20) << std::left << "Trace"
@@ -147,6 +138,15 @@ int main(int argc,char* argv[]) {
     }
     delete eva;
     tracefiles.close();
+
+    std::ofstream txtfile;
+    txtfile.open("WMRE.txt",std::ios::app);
+    txtfile << std::setw(20) << std::left <<  "AS"
+            << std::setw(20) << std::left << memory
+            << std::setw(20) << std::left << trace
+            << std::setw(20) << std::left << step
+            << std::setw(20) << std::left << avg_wmre/epoch<<std::endl;
+
     return 0;
 
 }

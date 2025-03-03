@@ -1,11 +1,9 @@
-#include "lib/inputadaptor.hpp"
-#include "lib/evaluation.hpp"
+#include "../../lib/inputadaptor.hpp"
+#include "../../lib/evaluation.hpp"
 #include <fstream>
 #include <iomanip>
 #include <unordered_map>
-#include "src/Ours.hpp"
-
-   
+#include "../../src/LaF_CU.hpp"
 
 int main(int argc,char* argv[]) {
     // Configure parameters
@@ -15,13 +13,15 @@ int main(int argc,char* argv[]) {
     }
 
     unsigned long long buf_size = 1000000000;
+    // double thresh = 0.00018;
+    // uint32_t threshold = 20000;
     int memory = atoi(argv[1]);
-    double h_ratio = 0.3;
-    double s_ratio = 0.6;
-    int depth = 3;//atoi(argv[5]);
-    double frac = 0.6321;
+    int meminkb = memory;
+    int percent = 10;
+    int thres1 = 18;
+    int thres2 = 2;
     int trace = atoi(argv[2]);
-    
+    // std::cout<<"depth = "<<depth<<" , width = "<<width<<std::endl;
     // pcap traces
     std::string dir,filelist;
     if(trace == 19) {
@@ -29,8 +29,8 @@ int main(int argc,char* argv[]) {
         filelist = "/home/mina/Documents/dataset/caida/2019/dirA/fileList.txt";
     }
     else if(trace == 18) {
-        dir = "/home/mina/Documents/dataset/caida/2018/dirA/";
-        filelist = "/home/mina/Documents/dataset/caida/2018/dirA/fileList.txt";
+        dir = "/home/mina/Documents/dataset/caida/2018/dirB/";
+        filelist = "/home/mina/Documents/dataset/caida/2018/dirB/fileList.txt";
     }
     else if(trace == 16) {
         dir = "/home/mina/Documents/dataset/caida/2016/dirA/";
@@ -66,12 +66,12 @@ int main(int argc,char* argv[]) {
     // double avg_time = 0, max_time = 0, min_time = 10000000000;
     double avg_thr = 0, max_thr = 0, min_thr = 10000000000;
     int total_len = 0;
-    double ARE_S = 0.0, ARE_M = 0.0, ARE_L = 0.0;
     val_tp small = 0, middle = 0, large = 0;
-    double avg_frac = 0;
+
 
     double avg_error_1 = 0.0, avg_error_10=0.0,avg_error_100=0.0,avg_error_1000=0.0;
     double avg_error_10000 = 0.0, avg_error_100000=0.0;
+    double ARE_S = 0.0, ARE_M = 0.0, ARE_L = 0.0;
     Evaluation *eva = new Evaluation();
 
     for (std::string file; getline(tracefiles, file);) {
@@ -90,9 +90,9 @@ int main(int argc,char* argv[]) {
             ++ sum;
         }
         // std::cout << "[Message] Finish Insert hash table" << std::endl;
-        std::cout << "[Message] Total packets: " << sum <<", distinct flows: "<<ground.size()<< std::endl;
+        std::cout << "[Message] Total packets: " << sum << std::endl;
 
-       // sort
+        // sort
         std::vector<std::pair<key_tp, val_tp> > groundvec;
         groundvec.clear();
         for (auto it = ground.begin(); it != ground.end(); it++) {
@@ -109,9 +109,11 @@ int main(int argc,char* argv[]) {
         small = groundvec[m_num].second;
         middle = groundvec[m_num].second;
         large = groundvec[l_num].second;
-        std::cout<<small<<" "<<large<<" "<<std::endl;
 
-        SeiveSketch *sketch = new SeiveSketch(memory*1024, h_ratio, s_ratio, depth, frac);
+
+        CUSketchWithSF *sketch = new CUSketchWithSF(meminkb * 1024, percent,(meminkb * 1024*0.01*percent / (8 * 3)) * 0.99, std::ceil((meminkb * 1024*0.01*percent  / (8 * 3)) * 0.01),
+                                          8, 8,
+                                          thres1, thres2);
         sketch->Reset();
 
         // Update sketch
@@ -123,20 +125,19 @@ int main(int argc,char* argv[]) {
             // if(ground[t.src_ip]<threshold)
             // key_tp key = ((uint64_t)t.src_ip << 32) | t.dst_ip;
             key_tp key = t.src_ip;
-            sketch->Update(key,1);
+            sketch->insert(key);
         }
 
         t2 = Evaluation::now_us();
-        // std::cout<<(t2-t1)<<std::endl;
+        std::cout<<(t2-t1)<<std::endl;
         double throughput = sum/(double)(t2-t1)*1000000;
 
         // Query the result
-        avg_frac += sketch->GetBias(1);
         std::cout<<"querying"<<std::endl;
         // myvector results;
         // results.clear();
-        // // t1 = Evaluation::now_us();
-        // sketch->Query(20000, results);
+        // t1 = Evaluation::now_us();
+        // sketch->Query(threshold, results);
         // t2 = Evaluation::now_us();
         // double dtime = (double)(t2-t1)/1000000;
 
@@ -146,16 +147,14 @@ int main(int argc,char* argv[]) {
         ae = 0;
         double RE_S = 0.0, RE_M = 0.0, RE_L = 0.0;
         int sum_s = 0, sum_m = 0, sum_l = 0;
-
         for(auto it = ground.begin(); it != ground.end(); it++) {
-            int record = sketch->PointQuery(it->first);
+            int record = sketch->query(it->first);
             ae += abs((long)it->second - (long)record);
-
-            if(it->second <= small) {
+            if(it->second < small) {
                 sum_s ++;
                 RE_S += 1.0*abs((long)it->second - (long)record)/it->second;
             }
-            else if (it->second <= large) {
+            else if (it->second < large) {
                 sum_m ++;
                 RE_M += 1.0*abs((long)it->second - (long)record)/it->second;
             }
@@ -166,7 +165,6 @@ int main(int argc,char* argv[]) {
             if(it->second == 1) {
                 sum_1++;
                 error_1 += 1.0*abs((long)it->second - (long)record)/it->second;
-                // std::cout<<it->first<<" "<<it->second<<" "<<record<<std::endl;
             }
             else if(it->second <= 10) {
                 sum_10++;
@@ -175,6 +173,7 @@ int main(int argc,char* argv[]) {
             else if(it->second <= 100) {
                 sum_100++;
                 error_100 += 1.0*abs((long)it->second - (long)record)/it->second;
+                // std::cout<<it->first<<" "<<it->second<<" "<<record<<std::endl;
             }
             else if(it->second <= 1000) {
                 sum_1000++;
@@ -203,7 +202,8 @@ int main(int argc,char* argv[]) {
         std::cout<<"(100-1000] error is "<<error_1000/ sum_1000 <<std::endl;
         std::cout<<"(1000-10000] error is "<<error_10000/ sum_10000 <<std::endl;
         std::cout<<"(10000-inf] error is "<<error_100000/ sum_100000<<std::endl;
- 
+
+
         ARE_S += RE_S / sum_s;
         ARE_M += RE_M / sum_m;
         ARE_L += RE_L / sum_l;
@@ -239,7 +239,7 @@ int main(int argc,char* argv[]) {
             << std::setw(20)<< std::left << "RE" 
             << std::setw(20) << std::left << "AE"
             << std::setw(20)  << std::left << "Throughput" << std::endl;
-        std::cout << std::setw(20) << std::left <<  "Our"
+        std::cout << std::setw(20) << std::left <<  "Ladder"
             << std::setw(20) << std::left << memory
             // << std::setw(20) << std::left << threshold
             // << std::setw(20) << std::left << f1
@@ -258,7 +258,7 @@ int main(int argc,char* argv[]) {
     std::cout << std::setfill(' ');
     //std::cout << std::setw(20) << std::left << "Algorithm"
     std::ofstream txtfile;
-    txtfile.open("results/param_frac.txt",std::ios::app);
+    txtfile.open("accuracy_frequency.txt",std::ios::app);
     // txtfile<<"threshold = "<<threshold<<" , depth = "<<depth<<" , width = "<<width<<std::endl;
     std::cout << std::setw(20) << std::left << "Algorithm"
     << std::setw(20) << std::left << "Memory"
@@ -273,10 +273,8 @@ int main(int argc,char* argv[]) {
     << std::setw(20) << std::left << "AAE"
     << std::setw(20) << std::left << "Throughput"
     <<std::endl;
-    txtfile << std::setw(20) << std::left <<  "Our"
+    txtfile << std::setw(20) << std::left <<  "Ladder"
     << std::setw(20) << std::left << memory
-    << std::setw(20) << std::left << frac
-    << std::setw(20) << std::left << avg_frac / total_len
     << std::setw(20) << std::left << trace
     << std::setw(20) << std::left << avg_error_1 / total_len
     << std::setw(20) << std::left << avg_error_10 / total_len
@@ -295,8 +293,6 @@ int main(int argc,char* argv[]) {
     << std::setw(20) << std::left << min_ae / total_len
     << std::setw(20) << std::left << max_ae / total_len
     <<std::endl;
-    
     txtfile.close();
     return 0;
-
 }

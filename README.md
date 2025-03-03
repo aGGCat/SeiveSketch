@@ -3,22 +3,22 @@
 ## Files
 src/Ours.hpp: the implementation of SeiveSketch
 
-mian_our.cpp: example about item frequency estimation
+Experiments/Frequency_Estimation: experiments on item frequency estimation
 
-mian_skew.cpp: example about item frequency estimation under different skewness
+Experiments/Skewness: experiments on item frequency estimation under different skewness
 
-hh_our.cpp: example about heavy hitter detection
+Experiments/Heavy_Hitter: experiments on heavy hitter detection
 
-hc_our.cpp: example about heavy change detection
+Experiments/Heavy_Change: experiments on heavy change detection
 
-cdf_our.cpp: example about relative error cdf 
+Experiments/CDF_Error: experiments on relative error cdf 
 
-fredist_our.cpp: example about item frequency distribution
+Experiments/Frequency_Distribution: experiments on item frequency distribution
 
-Appendix.pdf: some supplements to the paper
+Appendix: some supplements to the paper
 
 ## Compile and Run the examples
-SeiveSketch is implemented with C++. We show how to compile the examples on Ubuntu with g++ and make.
+SeiveSketch and all compared sketches are implemented with C++. We show how to compile the examples on Ubuntu with g++ and make.
 
 ### Requirements
 - Ensure g++ and make are installed. Our experimental platform is equipped with Ubuntu 20.04, g++ 9.4.0 and make 4.2.1.

@@ -1,37 +1,29 @@
-SRCCOM += $(wildcard lib/*.c) \
-	          $(wildcard lib/*.cpp)
+SRCCOM += $(wildcard ../../lib/*.c) \
+	          $(wildcard ../../lib/*.cpp)
 
 CFLAGS = -Wall -std=c++11 -O3 
 LIBS= -static-libstdc++ -lPcap++ -lPacket++ -lCommon++ -lpcap -lpthread -lm 
-INCLUDES= -I/home/mina/Documents/github/PaperSummary/code/lib -I/usr/local/include/pcapplusplus/
+INCLUDES= -I/home/mina/Documents/github/SeiveSketch/lib -I/usr/local/include/pcapplusplus/
 
 # flow size estimation
 
 our: main_our.cpp
 	g++ $(CFLAGS) $(INCLUDES) -o $@ $< $(SRCCOM) $(LIBS)
 
-# skew
-
-
-skew_our: main_skew.cpp
+cm: main_cm.cpp
 	g++ $(CFLAGS) $(INCLUDES) -o $@ $< $(SRCCOM) $(LIBS)
 
-# heavy hitter
-
-hh_our: hh_our.cpp
+cu: main_cu.cpp
 	g++ $(CFLAGS) $(INCLUDES) -o $@ $< $(SRCCOM) $(LIBS)
 
-# heavy change	
-
-hc_our: hc_our.cpp
+elastic: main_elastic.cpp
 	g++ $(CFLAGS) $(INCLUDES) -o $@ $< $(SRCCOM) $(LIBS)
 
-# cumulative distribution function of relative error (CDF_RE)
-
-cdf_our: cdf_our.cpp
+cf: main_cf.cpp
 	g++ $(CFLAGS) $(INCLUDES) -o $@ $< $(SRCCOM) $(LIBS)
 
-# wmre of frequency distribution (flow size distribution )	
+as: main_as.cpp
+	g++ $(CFLAGS) $(INCLUDES) -o $@ $< $(SRCCOM) $(LIBS)
 
-fredist_our: fredist_our.cpp
+laf: main_laf.cpp
 	g++ $(CFLAGS) $(INCLUDES) -o $@ $< $(SRCCOM) $(LIBS)

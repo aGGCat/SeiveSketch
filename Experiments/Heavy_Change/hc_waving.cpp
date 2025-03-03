@@ -1,28 +1,26 @@
-#include "lib/inputadaptor.hpp"
-#include "lib/evaluation.hpp"
+#include "../../lib/inputadaptor.hpp"
+#include "../../lib/evaluation.hpp"
 #include <fstream>
 #include <iomanip>
 #include <unordered_map>
-#include "src/Ours.hpp"
-
-   
+#include "../../src/WavingSketch.hpp"
+// #include "src/sketch_waving.hpp"
 
 int main(int argc,char* argv[]) {
     // Configure parameters
     if (argc < 3) {
-        printf("Usage: %s [Memory(KB)] [Trace]\n", argv[0]);
+        printf("Usage: %s [threshold] [Memory(KB)]\n", argv[0]);
         return 0;
     }
 
     unsigned long long buf_size = 1000000000;
+    // double thresh = 0.00018;
+    float threshold = 0.0005;
     int memory = atoi(argv[1]);
-    float threshold = 0.0005;//We set the HC threshold as 0.05% of total changes over two adjacent measurement epochs
-    double h_ratio = 0.3;
-    double s_ratio = 0.6;
-    int depth = 3;//atoi(argv[5]);
-    double frac = 0.6321;
+    int slot = 16;
+    int counter = 32;
+    int bucket = memory*1024/((slot*8+counter*2));
     int trace = atoi(argv[2]);
-    
     // pcap traces
     std::string dir,filelist;
     if(trace == 19) {
@@ -49,8 +47,6 @@ int main(int argc,char* argv[]) {
         dir = "/home/mina/Documents/dataset/MAWI_F/";
         filelist = "/home/mina/Documents/dataset/MAWI_F/fileList.txt";
     }
-    // char dir[256] = "./";
-    // char filelist[256] = "./fileList.txt";
 
     std::ifstream tracefiles(filelist);
     if (!tracefiles.is_open()) {
@@ -58,7 +54,7 @@ int main(int argc,char* argv[]) {
         return -1;
     }
 
-    double error, precision, recall,  f1;
+    double precision, recall, error, f1;
     double avg_f1 = 0;
     double avg_pre = 0, max_pre = 0, min_pre = 1;
     double avg_rec = 0, max_rec = 0, min_rec = 1;
@@ -66,7 +62,7 @@ int main(int argc,char* argv[]) {
     double avg_time = 0, max_time = 0, min_time = 10000000000;
     double avg_thr = 0, max_thr = 0, min_thr = 10000000000;
     int total_len = 0;
-    int avg_HIT = 0;
+    double avg_HIT = 0;
 
     Evaluation *eva = new Evaluation();
 
@@ -91,7 +87,7 @@ int main(int argc,char* argv[]) {
         }
         // std::cout << "[Message] Finish Insert hash table" << std::endl;
         std::cout << "[Message] Total packets: " << sum << std::endl;
-        
+
         int HIT = 0;
         for (auto it = diff.begin(); it != diff.end(); it++)
         {
@@ -102,8 +98,9 @@ int main(int argc,char* argv[]) {
 
         std::cout << "[Message] Threshold: " << HIT << std::endl;
 
-        SeiveSketch *sketch1 = new SeiveSketch(memory*1024, h_ratio, s_ratio, depth, frac);
-        SeiveSketch *sketch2 = new SeiveSketch(memory*1024, h_ratio, s_ratio, depth, frac);
+
+        WavingSketch *sketch1 = new WavingSketch(bucket,slot,counter);
+        WavingSketch *sketch2 = new WavingSketch(bucket,slot,counter);
         sketch1->Reset();
         sketch2->Reset();
 
@@ -124,41 +121,38 @@ int main(int argc,char* argv[]) {
                 sketch2->Update(key,1);
             ++ num;
         }
-
         t2 = Evaluation::now_us();
-        // std::cout<<(t2-t1)<<std::endl;
         double throughput = sum/(double)(t2-t1)*1000000;
 
         // Query the result
         std::cout<<"querying"<<std::endl;
+        myvector results;
+        results.clear();
         t1 = Evaluation::now_us();
         int value = 0, all = 0, hit = 0, size = 0;
+        error = 0;
         for(auto it = diff.begin();it != diff.end();++it){
             value = std::abs((int)sketch1->PointQuery(it->first) - (int)sketch2->PointQuery(it->first));
-            if(abs(it->second) > HIT){
+            uint truth = abs(it->second);
+            if(truth > HIT){
                 all++;
                 if(value > HIT){
                     hit += 1;
                 }
             }
-            if(value > HIT)
+            if(value > HIT){
                 size += 1;
+                error += 1.0*abs((long)truth - (long)value)/truth;
+            }
         }
-
+        error /= size;
         t2 = Evaluation::now_us();
         double dtime = (double)(t2-t1)/1000000;
-
-        // for (auto i = truth.begin(); i != truth.end(); i++)
-        // {
-        //     int val = sketch->PointQuery(key);
-        // }
-        
-
+        // std::cout<<all<<" "<<size<<std::endl;
 
         // Calculate accuracy
-        // eva->get_accuracy(truth, results, &precision, &recall, &error);
-        precision= hit / (double)all;
-        recall= hit / (double)size;
+        precision = hit / (double)all;
+        recall = hit / (double)size;
         f1 = 2.0*precision*recall/(precision+recall);
         avg_f1 += f1;
         avg_pre += precision;
@@ -176,25 +170,26 @@ int main(int argc,char* argv[]) {
         max_time = max_time < dtime ? dtime : max_time;
         min_thr = min_thr > throughput ? throughput : min_thr;
         max_thr = max_thr < throughput ? throughput : max_thr;
-
+        std::cout << "Memory = " << memory << std::endl;
         // printf("Total packets: %lu \n", num_item);
-        // printf("Total HHs: %lu \n", results.size());
+        printf("Total HHs: %lu \n", results.size());
         std::cout << std::setw(20) << std::left << "Algorithm"
             << std::setw(20) << std::left << "Memory"
             << std::setw(20) << std::left << "Threshold"
             << std::setw(20) << std::left << "F1"
             << std::setw(20) << std::left << "Precision"
             << std::setw(20) << std::left << "Recall" 
-            << std::setw(20)<< std::left << "RE" 
-            << std::setw(20) << std::left << "AE"
+            << std::setw(20)<< std::left << "Error" 
+            << std::setw(20) << std::left << "Time"
             << std::setw(20)  << std::left << "Throughput" << std::endl;
-        std::cout << std::setw(20) << std::left <<  "Our"
+        std::cout << std::setw(20) << std::left <<  "Waving"
             << std::setw(20) << std::left << memory
             << std::setw(20) << std::left << threshold
             << std::setw(20) << std::left << f1
             << std::setw(20) << std::left << precision
             << std::setw(20) << std::left << recall 
             << std::setw(20)<< std::left << error 
+            << std::setw(20) << std::left << dtime
             << std::setw(20)  << std::left << throughput << std::endl;
         delete sketch1;
         delete sketch2;
@@ -207,8 +202,7 @@ int main(int argc,char* argv[]) {
     std::cout << std::setfill(' ');
     //std::cout << std::setw(20) << std::left << "Algorithm"
     std::ofstream txtfile;
-    txtfile.open("results/HC_Accuracy_comparision.txt",std::ios::app);
-
+    txtfile.open("HC_Accuracy_comparision_new.txt",std::ios::app);
     std::cout << std::setw(20) << std::left << "Algorithm"
         << std::setw(20) << std::left << "Memory"
         << std::setw(20) << std::left << "Threshold"
@@ -229,31 +223,30 @@ int main(int argc,char* argv[]) {
             << std::setw(20) << std::left << "MaxThr"
             << std::endl;
 
-    txtfile << std::setw(20) << std::left <<  "Our"
-        << std::setw(20) << std::left << memory*2
-        << std::setw(20) << std::left << threshold
-        << std::setw(20) << std::left << trace
-        << std::setw(20) << std::left << avg_HIT/total_len
-        // << std::setw(20) << std::left << avg_frac / total_len
-        // << std::setw(20) << std::left << avg_hh / total_len
-        << std::setw(20) << std::left << avg_f1/total_len
-        << std::setw(20) << std::left << avg_pre/total_len
-        << std::setw(20) << std::left << avg_rec/total_len
-        // << std::setw(20) << std::left << avg_err/total_len
-        << std::setw(20) << std::left << avg_time/total_len
-        << std::setw(20) << std::left << avg_thr/total_len
-        << std::setw(20)  << std::left << min_pre
-        << std::setw(20)  << std::left << min_rec
-        // << std::setw(20)  << std::left << min_err
-        << std::setw(20)  << std::left << min_time
-        << std::setw(20)  << std::left << min_thr
-        << std::setw(20)  << std::left << max_pre
-        << std::setw(20)  << std::left << max_rec
-        // << std::setw(20)  << std::left << max_err
-        << std::setw(20)  << std::left << max_time
-        << std::setw(20)  << std::left << max_thr
-            << std::endl;
-    
+    txtfile << std::setw(20) << std::left <<  "Waving"
+            << std::setw(20) << std::left << memory*2
+            << std::setw(20) << std::left << threshold
+            << std::setw(20) << std::left << trace
+            << std::setw(20) << std::left << avg_HIT/total_len
+            // << std::setw(20) << std::left << avg_frac / total_len
+            // << std::setw(20) << std::left << avg_hh / total_len
+            << std::setw(20) << std::left << avg_f1/total_len
+            << std::setw(20) << std::left << avg_pre/total_len
+            << std::setw(20) << std::left << avg_rec/total_len
+            << std::setw(20) << std::left << avg_err/total_len
+            << std::setw(20) << std::left << avg_time/total_len
+            << std::setw(20) << std::left << avg_thr/total_len
+            << std::setw(20)  << std::left << min_pre
+            << std::setw(20)  << std::left << min_rec
+            // << std::setw(20)  << std::left << min_err
+            << std::setw(20)  << std::left << min_time
+            << std::setw(20)  << std::left << min_thr
+            << std::setw(20)  << std::left << max_pre
+            << std::setw(20)  << std::left << max_rec
+            // << std::setw(20)  << std::left << max_err
+            << std::setw(20)  << std::left << max_time
+            << std::setw(20)  << std::left << max_thr
+                << std::endl;
     txtfile.close();
     return 0;
 

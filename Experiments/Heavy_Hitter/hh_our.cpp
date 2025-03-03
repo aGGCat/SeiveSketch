@@ -1,9 +1,9 @@
-#include "lib/inputadaptor.hpp"
-#include "lib/evaluation.hpp"
+#include "../../lib/inputadaptor.hpp"
+#include "../../lib/evaluation.hpp"
 #include <fstream>
 #include <iomanip>
 #include <unordered_map>
-#include "src/Ours.hpp"
+#include "../../src/Ours.hpp"
 
    
 
@@ -21,7 +21,7 @@ int main(int argc,char* argv[]) {
     double s_ratio = 0.6;
     int depth = 3;//atoi(argv[5]);
     double frac = 0.6321;
-    int trace = atoi(argv[3]);
+    int trace = atoi(argv[2]);
     
     // pcap traces
     std::string dir,filelist;
@@ -186,7 +186,7 @@ int main(int argc,char* argv[]) {
     std::cout << std::setfill(' ');
     //std::cout << std::setw(20) << std::left << "Algorithm"
     std::ofstream txtfile;
-    txtfile.open("results/HH_Accuracy_comparision.txt",std::ios::app);
+    txtfile.open("HH_Accuracy_comparision.txt",std::ios::app);
 
     std::cout << std::setw(20) << std::left << "Algorithm"
         << std::setw(20) << std::left << "Memory"
