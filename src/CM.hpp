@@ -56,7 +56,7 @@ public:
     }
 
     void Update(key_tp key, val_tp weight) {
-        // val_tp result = 0;
+        val_tp result = 0;
         for (int i = 0; i < ccm_.depth; i++) {
             // hash_num++;
             uint64_t bucket = MurmurHash64A((unsigned char *)&key, ccm_.lgn, ccm_.hash[i]);
@@ -66,56 +66,56 @@ public:
                 ccm_.counts[index] += weight;
             else
                 ccm_.counts[index] = UINT32_MAX;
-            // if (i == 0) result = ccm_.counts[index];
-            // else result = std::min(result, ccm_.counts[index]);
+            if (i == 0) result = ccm_.counts[index];
+            else result = std::min(result, ccm_.counts[index]);
         }
         // std::cout << "threshold = " << threshold << "\t result = " << result << std::endl;
-        // if (result > ccm_.thre) {
-        //     std::pair<key_tp, val_tp> node(key, result);
-        //     //If heap is empty
-        //     if (heap_.size() == 0) {
-        //         heap_.push_back(node);
-        //         std::make_heap(heap_.begin(), heap_.end(), less_comparer_desc);
-        //     } else {
-        //         //Check if node is in the heap
-        //         auto it = heap_.begin();
-        //         for ( ; it != heap_.end(); ++it) {
-        //             // std::cout<<it->second<<std::endl;
-        //             if (key == it->first) break;
-        //         }
-        //         // std::cout<<"it->second"<<std::endl;
-        //         //Node is not in the heap, insert it
-        //         if (it == heap_.end()) {
-        //             if(heap_.size() < ccm_.thre) {
-        //                 heap_.push_back(node);
-        //                 std::push_heap(heap_.begin(), heap_.end(), less_comparer_desc);
-        //                 return;
-        //             }
-        //             else {
-        //                 std::sort_heap(heap_.begin(), heap_.end(), less_comparer_desc);
-        //                 auto tmp  = heap_.at(heap_.size()-1);
-        //                 if(result > tmp.second) {
-        //                     tmp.first = key;
-        //                     tmp.second = result;
-        //                     std::make_heap(heap_.begin(), heap_.end(), less_comparer_desc);
-        //                 }
-        //             }
+        if (ccm_.thre != 0 && result > ccm_.thre) {
+            std::pair<key_tp, val_tp> node(key, result);
+            //If heap is empty
+            if (heap_.size() == 0) {
+                heap_.push_back(node);
+                std::make_heap(heap_.begin(), heap_.end(), less_comparer_desc);
+            } else {
+                //Check if node is in the heap
+                auto it = heap_.begin();
+                for ( ; it != heap_.end(); ++it) {
+                    // std::cout<<it->second<<std::endl;
+                    if (key == it->first) break;
+                }
+                // std::cout<<"it->second"<<std::endl;
+                //Node is not in the heap, insert it
+                if (it == heap_.end()) {
+                    if(heap_.size() < ccm_.thre) {
+                        heap_.push_back(node);
+                        std::push_heap(heap_.begin(), heap_.end(), less_comparer_desc);
+                        return;
+                    }
+                    else {
+                        std::sort_heap(heap_.begin(), heap_.end(), less_comparer_desc);
+                        auto tmp  = heap_.at(heap_.size()-1);
+                        if(result > tmp.second) {
+                            tmp.first = key;
+                            tmp.second = result;
+                            std::make_heap(heap_.begin(), heap_.end(), less_comparer_desc);
+                        }
+                    }
                     
-        //         } else {
-        //             it->second = result;
-        //             std::make_heap(heap_.begin(), heap_.end(), less_comparer_desc);
-        //             return;
-        //         }
-        //     }
-        //     //Check whether heap size is bigger than threshold
-        //     //std::cout<<sizeof(myvector)<<std::endl;
-        //     if (heap_.size() >= 128) {
-        //         // std::cout<<(heap_.capacity() * sizeof(std::pair<key_tp,val_tp>))<<std::endl;
-        //         std::sort_heap(heap_.begin(), heap_.end(), less_comparer_desc);
-        //         heap_.erase(heap_.end());
-        //         std::make_heap(heap_.begin(), heap_.end(), less_comparer_desc);
-        //     }
-        // }
+                } else {
+                    it->second = result;
+                    std::make_heap(heap_.begin(), heap_.end(), less_comparer_desc);
+                    return;
+                }
+            }
+            //Check whether heap size is bigger than threshold
+            //std::cout<<sizeof(myvector)<<std::endl;
+            if (heap_.size() >= 128) {
+                // std::cout<<(heap_.capacity() * sizeof(std::pair<key_tp,val_tp>))<<std::endl;
+                std::sort_heap(heap_.begin(), heap_.end(), less_comparer_desc);
+                heap_.erase(heap_.end());
+                std::make_heap(heap_.begin(), heap_.end(), less_comparer_desc);
+            }
+        }
     }
 
     val_tp num_effect_w(key_tp key, uint32_t c, uint32_t h) {
