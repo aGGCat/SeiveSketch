@@ -34,7 +34,7 @@ make all
 
 
 ### Datasets
-You can download datasets from the following links.
+In our paper, we use five datasets (CAIDA, WebDocs, MAWI, Twitter, IMDB) to conduct the experiments. You can download these datasets from the following links. We provide a small dataset in this project (See details in the `data` folder)
 
 CAIDA: https://catalog.caida.org/dataset/passive_2019_pcap
 
