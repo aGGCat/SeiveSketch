@@ -17,7 +17,7 @@
 
 
 
-## Compile and Run the examples
+## Compile and Run the Examples
 SeiveSketch and all compared sketches are implemented with C++. We compile these examples on Ubuntu with g++ and make.
 ```
 cd Experiments/5.2_Frequency_Estimation/
@@ -27,9 +27,12 @@ make all
 
 ### Requirements
 - Ensure g++ and make are installed. Our experimental platform is equipped with Ubuntu 20.04, g++ 9.4.0 and make 4.2.1.
-- Ensure the necessary library libpcap is installed.
-    - It can be installed by the following command 
+- Ensure the necessary library libpcap and PcapPlusPlus are installed.
+    - Library libpcap can be installed by the following command 
         - `apt-get install libpcap-dev in Ubuntu`
+    - PcapPlusPlus is open source on Github, you can install it by following the [installation tutorial](https://pcapplusplus.github.io/docs/install/linux) on its official website.
+        - its link: https://github.com/seladb/PcapPlusPlus/releases
+        - We use the November 2022 release of PcapPlusPlus (v22.11)
 
 
 
