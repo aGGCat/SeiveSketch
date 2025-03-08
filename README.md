@@ -1,11 +1,11 @@
 # SeiveSketch
 
 ## Files
-- Appendix: some supplements to the paper
+- `Appendix`: some supplements to the paper
 
-- data: a small dataset for testing
+- `data`: a small dataset for testing
 
-- Experiments: the folder contains the experiments in our paper
+- `Experiments`: the folder contains the experiments in our paper
     - 5.2_Frequency_Estimation: experiments on item frequency estimation in Section 5.2
     - 5.2_Relative_error_CDF: experiments on relative error cdf in Section 5.2
     - 5.2_Skewness: experiments on item frequency estimation under different skewness in Section 5.2
@@ -13,7 +13,7 @@
     - 5.4_Heavy_Change: experiments on heavy change detection in Section 5.4
     - 5.4_Frequency_Distribution: experiments on item frequency distribution in Section 5.4
 
-- src: the folder contains the source files of sketches.
+- `src`: the folder contains the source files of sketches.
 
 
 

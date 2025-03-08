@@ -170,7 +170,6 @@ int main(int argc,char* argv[]) {
 
     std::cout << std::setw(20) << std::left << "Algorithm"
         << std::setw(20) << std::left << "Memory"
-        << std::setw(20) << std::left << "Threshold"
         << std::setw(20)<< std::left << "RE" 
         << std::setw(20) << std::left << "AE"
         << std::setw(20)  << std::left << "Throughput" << std::endl;

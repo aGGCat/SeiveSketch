@@ -26,20 +26,20 @@ class SeiveSketch : public SketchBase {
     };
     
     struct SS_type {
-        //heavy part
+        //hot part
         int bucket_num;
         Bucket *buckets;
         uint32_t *v_s;
         
-        //layer 1 in small part
+        //layer 1 in cold part
         int filter_num1;
         uint8_t* L1;
 
-        //layer 2 in small part
+        //layer 2 in cold part
         int filter_num2;
         uint8_t* L2;
 
-       //middle part
+        //warm part
         int counter_num;
         int depth;
         int width;
@@ -48,8 +48,8 @@ class SeiveSketch : public SketchBase {
         int ones; // record the number of counter whose value > thre
         uint thre;// value > thre
         double r0;// sampling rate
-        uint T1,T2;// T1: Layer1 MAX; T2: Layer2 MAX; 
-        double frac; // the propotion of the number of counter > frac
+        uint T1,T2;// T1: Layer1 Threshold; T2: Layer2 Threshold; 
+        double frac; // the propotion of the number of counter exceeding thre > frac
  
         unsigned long * hash;
 
@@ -58,11 +58,12 @@ class SeiveSketch : public SketchBase {
     };
 
     SeiveSketch(int memory, double h_ratio, double s_ratio, int depth, double frac) {
+        //setting parameters of Hot Part
         ss_.bucket_num = memory * h_ratio / (8 * COUNTER_PER_BUCKET + 4);
         ss_.buckets = new Bucket[ss_.bucket_num]();
         ss_.v_s = new uint32_t[ss_.bucket_num]();
         
-        //filter setting
+        //setting parameters of Cold Part
         ss_.filter_num1 =  memory * s_ratio * 0.65;
         ss_.r0 = 1;
         ss_.ones = 0;
@@ -75,7 +76,7 @@ class SeiveSketch : public SketchBase {
         ss_.T2 = 241; 
         ss_.frac = frac;
         
-        //count setting
+        //setting parameters of Warm Part
         ss_.counter_num = memory * (1-h_ratio-s_ratio) / 2;
         ss_.depth = depth;
         ss_.width = ss_.counter_num ;
@@ -99,7 +100,7 @@ class SeiveSketch : public SketchBase {
         delete[] ss_.buckets;
     }
 
-    int HeavyPart_insert(key_tp key, key_tp &swap_key, uint32_t &swap_val, uint32_t f = 1) {
+    int HotPart_insert(key_tp key, key_tp &swap_key, uint32_t &swap_val, uint32_t f = 1) {
         int pos = CalculateFP(key);
         uint32_t min_counter_val = GetCounterVal(ss_.buckets[pos].val[0]);
         int min_counter = 0;
@@ -141,7 +142,7 @@ class SeiveSketch : public SketchBase {
         return 1;
     }
 
-    uint32_t HeavyPart_query(key_tp key) {
+    uint32_t HotPart_query(key_tp key) {
         key_tp fp = key;
         int pos = CalculateFP(fp);
         for(int i = 0; i < MAX_VALID_COUNTER; ++i)
@@ -150,7 +151,7 @@ class SeiveSketch : public SketchBase {
         return 0; 
     }
 
-    int LightPart_insert(key_tp key, int weight) {
+    int ColdPart_insert(key_tp key, int weight) {
         uint value[4];
         int index[4] = {0};
         int offset[4] = {0};
@@ -225,11 +226,11 @@ class SeiveSketch : public SketchBase {
         int delta2 = ss_.T2 - v2;
         weight -= delta2;
         if(weight)
-            MiddlePart_insert(key,weight);
+            WarmPart_insert(key,weight);
         return weight;
     }
 
-    int LightPart_insert_withR(key_tp key, int weight) {
+    int ColdPart_insert_withR(key_tp key, int weight) {
         uint value[4];
         int index[4] = {0};
         int offset[4] = {0};
@@ -323,11 +324,11 @@ class SeiveSketch : public SketchBase {
         int delta2 = ss_.T2 - v2;
         weight -= delta2;
         if(weight)
-            MiddlePart_insert(key,weight);
+            WarmPart_insert(key,weight);
         return weight;
     }
 
-	uint32_t LightPart_query(key_tp key) {
+	uint32_t ColdPart_query(key_tp key) {
         //query filter1 
         uint v1 = UINT32_MAX;
         uint64_t h1= MurmurHash64A((unsigned char*)&key,ss_.lgn,ss_.hash[0]);
@@ -356,11 +357,11 @@ class SeiveSketch : public SketchBase {
         if(v2 < ss_.T2)
             return (v1 + v2);
         
-        uint v3 = MiddlePart_query(key);
+        uint v3 = WarmPart_query(key);
         return (v1 + v2 + v3);
     }
 
-	uint32_t LightPart_query_withR(key_tp key) {
+	uint32_t ColdPart_query_withR(key_tp key) {
         uint64_t h1= MurmurHash64A((unsigned char*)&key,ss_.lgn,ss_.hash[0]);
         uint v1 = UINT32_MAX;
         for(int i = 0; i < ss_.depth; i++) {
@@ -393,11 +394,11 @@ class SeiveSketch : public SketchBase {
         
         if(v2 < ss_.T2)
             return (est + v2);
-        uint v3 = MiddlePart_query(key);
+        uint v3 = WarmPart_query(key);
         return (est + v2 + v3);
     }
 
-    void MiddlePart_insert(key_tp key, int weight) {
+    void WarmPart_insert(key_tp key, int weight) {
         uint64_t hash = MurmurHash64A((unsigned char*)&key,ss_.lgn,ss_.hash[0]);
         uint pos = hash % ss_.width;
         if( (ss_.counters[pos]+weight) <= UINT16_MAX)
@@ -406,7 +407,7 @@ class SeiveSketch : public SketchBase {
             ss_.counters[pos] = UINT16_MAX;
     }
 
-	uint32_t MiddlePart_query(key_tp key) {
+	uint32_t WarmPart_query(key_tp key) {
         uint64_t hash = MurmurHash64A((unsigned char*)&key,ss_.lgn,ss_.hash[0]);
         uint pos = hash % ss_.width;
         return ss_.counters[pos];
@@ -436,26 +437,26 @@ class SeiveSketch : public SketchBase {
     void Update(key_tp key, val_tp weight) {
         key_tp swap_key;
         uint32_t swap_val = 0;
-        int result = HeavyPart_insert(key, swap_key, swap_val, weight);
+        int result = HotPart_insert(key, swap_key, swap_val, weight);
         switch(result)
         {
             case 0: return;
             case 1:{
                 if(ss_.r0 == 1) {
-                    LightPart_insert(swap_key, GetCounterVal(swap_val));
+                    ColdPart_insert(swap_key, GetCounterVal(swap_val));
                 }
                 else {
-                    LightPart_insert_withR(swap_key, GetCounterVal(swap_val));
+                    ColdPart_insert_withR(swap_key, GetCounterVal(swap_val));
                 }
                 Judge_Rate();
                 return;
             }
             case 2:  {
                 if(ss_.r0 == 1) {
-                    LightPart_insert(key, 1);
+                    ColdPart_insert(key, 1);
                 }
                 else {
-                    LightPart_insert_withR(key, 1);
+                    ColdPart_insert_withR(key, 1);
                 }
                 Judge_Rate();
                 return;
@@ -473,9 +474,9 @@ class SeiveSketch : public SketchBase {
                 int res = ss_.buckets[pos].val[i];
                 if(HIGHEST_BIT_IS_1(res)) {
                     if(ss_.r0 == 1)
-                        res = (int)GetCounterVal(res) + LightPart_query(key);
+                        res = (int)GetCounterVal(res) + ColdPart_query(key);
                     else
-                        res = (int)GetCounterVal(res) + LightPart_query_withR(key);
+                        res = (int)GetCounterVal(res) + ColdPart_query_withR(key);
                 }
 
                 return res;
@@ -484,10 +485,10 @@ class SeiveSketch : public SketchBase {
 
         uint result = 0;
         if(ss_.r0 == 1.0) {
-            result = LightPart_query(key);
+            result = ColdPart_query(key);
         }
         else {
-            result = LightPart_query_withR(key);
+            result = ColdPart_query_withR(key);
         }
         
         if(result == 0)
@@ -504,9 +505,9 @@ class SeiveSketch : public SketchBase {
                 uint res = ss_.buckets[i].val[j];
                 if(HIGHEST_BIT_IS_1(res)) {
                     if(ss_.r0 == 1)
-                        res = (int)GetCounterVal(res) + LightPart_query(key);
+                        res = (int)GetCounterVal(res) + ColdPart_query(key);
                     else
-                        res = (int)GetCounterVal(res) + LightPart_query_withR(key);
+                        res = (int)GetCounterVal(res) + ColdPart_query_withR(key);
                 }
                 if (res > thresh) {
                     results.push_back(std::make_pair(key, res));
