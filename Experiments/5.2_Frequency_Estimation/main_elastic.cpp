@@ -35,8 +35,6 @@ int main(int argc,char* argv[]) {
     double avg_error_10000 = 0.0, avg_error_100000=0.0;
     val_tp small = 0, middle = 0, large = 0;
     double ARE_S = 0.0, ARE_M = 0.0, ARE_L = 0.0;
-    double errors[100000] = {0};
-    int card[100000]={0};
     Evaluation *eva = new Evaluation();
     
     InputAdaptor* adaptor =  new InputAdaptor("", file, buf_size);
@@ -106,8 +104,6 @@ int main(int argc,char* argv[]) {
     for(auto it = ground.begin(); it != ground.end(); it++) {
         int record = sketch->PointQuery(it->first);
         ae += abs((long)it->second - (long)record);
-        int index = it->second / 10;
-        errors[index] += 1.0*abs((long)it->second - (long)record)/it->second;
         if(it->second < small) {
             sum_s ++;
             RE_S += 1.0*abs((long)it->second - (long)record)/it->second;

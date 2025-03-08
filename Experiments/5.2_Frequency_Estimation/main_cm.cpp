@@ -67,7 +67,8 @@ int main(int argc,char* argv[]) {
     middle = groundvec[m_num].second;
     large = groundvec[l_num].second;
     groundvec.clear();
-    cout<<small<<" "<<large<<endl;
+    // cout<<small<<" "<<large<<endl;
+    
     CountMin *sketch = new CountMin(depth, width,0);
     sketch->Reset();
 
@@ -171,8 +172,8 @@ int main(int argc,char* argv[]) {
         << std::setw(20)  << std::left << "Throughput" << std::endl;
     std::cout << std::setw(20) << std::left <<  "CoutMin"
         << std::setw(20) << std::left << memory
-        << std::setw(20) << std::left << RE_S / sum_s
-        << std::setw(20) << std::left << RE_L / sum_l
+        // << std::setw(20) << std::left << RE_S / sum_s
+        // << std::setw(20) << std::left << RE_L / sum_l
         << std::setw(20)<< std::left << error 
         << std::setw(20) << std::left << ae
         << std::setw(20)  << std::left << throughput << std::endl;

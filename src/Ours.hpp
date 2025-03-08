@@ -373,10 +373,7 @@ class SeiveSketch : public SketchBase {
             h1 >>= 4;
         }
 
-        // int num = ss_.r0;
         uint est = v1*1.0/ss_.r0;
-        // if(key == 1596342368)
-        //     std::cout<<est<<std::endl;
         if(v1 < ss_.T1)
             return est;
 
@@ -538,14 +535,6 @@ class SeiveSketch : public SketchBase {
 
     uint change_val(uint val, double avg) {
         uint res = val / 2;
-        // double rate = 2;
-        // if(val < ss_.T1) {
-        //     res = val / rate;
-        // }
-        // else {
-        //     uint est = val / rate;
-        //     res = std::min(est, (uint)ss_.T1); 
-        // }
         if(res >= ss_.thre)
             ss_.ones++;
     

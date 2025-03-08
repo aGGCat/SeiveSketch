@@ -21,8 +21,8 @@ class ESketch : public SketchBase {
     public:
     struct Bucket
     {
-        key_tp key[COUNTER_PER_BUCKET + 1];
-        val_tp val[COUNTER_PER_BUCKET + 1];
+        key_tp key[COUNTER_PER_BUCKET];
+        val_tp val[COUNTER_PER_BUCKET];
     };
     
     struct ES_type {
@@ -60,14 +60,6 @@ class ESketch : public SketchBase {
     int HeavyPart_insert(key_tp key, key_tp &swap_key, uint32_t &swap_val, uint32_t f) {
         int pos = CalculateFP(key);//4.67993e+08
         uint32_t min_counter_val = GetCounterVal(es_.buckets[pos].val[0]);
-        // if(key == 656862402)
-        //     std::cout<<pos<<std::endl;
-        // if(pos == 18){
-        //     for(int i = 0; i < COUNTER_PER_BUCKET_ES - 1; i++){
-        //         std::cout<<"("<<es_.buckets[pos].key[i]<<","<<GetCounterVal(es_.buckets[pos].val[i])<<")  ";
-        //     }
-        //     printf("%u neg = %d\n",key,es_.buckets[pos].val[MAX_VALID_COUNTER]);
-        // }
         int min_counter = 0;
         int empty = -1;
         for(int i = 0; i < COUNTER_PER_BUCKET; i++){
@@ -119,22 +111,18 @@ class ESketch : public SketchBase {
 
     void LightPart_insert(key_tp key, int f = 1) {
         uint32_t pos = MurmurHash64A((unsigned char*)&key,es_.lgn,es_.hash) % (uint32_t)es_.counter_num;
-        // hash_num++;
         /* insert */
         int new_val = (int)es_.counters[pos] + f;
         new_val = new_val < 255 ? new_val : 255;
-        // access++;
         es_.counters[pos] = (uint8_t)new_val;
     }
 
 	void LightPart_swap_insert(key_tp key, int f) {
         uint32_t pos = MurmurHash64A((unsigned char*)&key,es_.lgn,es_.hash) % (uint32_t)es_.counter_num;
-        // hash_num++;
         /* swap_insert */
         f = f < 255 ? f : 255;
         if (es_.counters[pos] < f) 
         {
-        // access++;
             es_.counters[pos] = (uint8_t)f;
         }
     }
@@ -189,8 +177,6 @@ class ESketch : public SketchBase {
             {
                 key_tp key = es_.buckets[i].key[j];
                 val_tp val = PointQuery(key);
-                // if(key == 1298962543)
-                //     std::cout<<i<<" "<<key<<" "<<val<<std::endl;
                 if (val > thresh) {
                     results.push_back(std::make_pair(key, val));
                 }
@@ -262,10 +248,6 @@ private:
     //Sketch data structure
     ES_type es_;
     EMFSD *em_ = NULL;
-    // int hash_num = 0;
-    // int access = 0;
-    // int k1 =0,k2=0,k3=0,k4=0;
-    // double h_time=0,l_time=0;
 };
 
 #endif

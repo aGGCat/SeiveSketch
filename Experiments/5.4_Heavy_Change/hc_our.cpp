@@ -98,17 +98,22 @@ int main(int argc,char* argv[]) {
     std::cout<<"querying"<<std::endl;
     t1 = Evaluation::now_us();
     int value = 0, all = 0, hit = 0, size = 0;
+    error = 0;
     for(auto it = diff.begin();it != diff.end();++it){
         value = std::abs((int)sketch1->PointQuery(it->first) - (int)sketch2->PointQuery(it->first));
-        if(abs(it->second) > HIT){
+        uint truth = abs(it->second);
+        if(truth > HIT){
             all++;
             if(value > HIT){
                 hit += 1;
             }
         }
-        if(value > HIT)
+        if(value > HIT){
             size += 1;
+            error += 1.0*abs((long)truth - (long)value)/truth;
+        }
     }
+    error /= size;
 
     t2 = Evaluation::now_us();
     double dtime = (double)(t2-t1)/1000000;
@@ -142,7 +147,6 @@ int main(int argc,char* argv[]) {
         << std::setw(20) << std::left << "Precision"
         << std::setw(20) << std::left << "Recall" 
         << std::setw(20)<< std::left << "RE" 
-        << std::setw(20) << std::left << "AE"
         << std::setw(20)  << std::left << "Throughput" << std::endl;
 
     std::cout << std::setw(20) << std::left <<  "Our"

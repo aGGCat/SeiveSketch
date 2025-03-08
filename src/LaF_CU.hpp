@@ -21,7 +21,7 @@ public:
                           _cols,  _counter_len,
                           _thres1, _thres2);
         cu = new CU(3,int((total_memory_in_bytes) * (100 - filter_memory_percent) / 100) / (3*4));
-        std::cout<<(int((total_memory_in_bytes) * (100 - filter_memory_percent) / 100) / (3*4))<<" "<<_bucket_num1<<" "<<_bucket_num2<<std::endl;
+        // std::cout<<(int((total_memory_in_bytes) * (100 - filter_memory_percent) / 100) / (3*4))<<" "<<_bucket_num1<<" "<<_bucket_num2<<std::endl;
     }
 
     inline void insert(key_tp item)

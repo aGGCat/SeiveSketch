@@ -68,7 +68,7 @@ int main(int argc,char* argv[]) {
     small = groundvec[m_num].second;
     middle = groundvec[m_num].second;
     large = groundvec[l_num].second;
-    std::cout<<small<<" "<<large<<" "<<std::endl;
+    // std::cout<<small<<" "<<large<<" "<<std::endl;
 
     SeiveSketch *sketch = new SeiveSketch(memory*1024, h_ratio, s_ratio, depth, frac);
     sketch->Reset();
