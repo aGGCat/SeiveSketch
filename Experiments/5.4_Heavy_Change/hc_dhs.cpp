@@ -29,8 +29,6 @@ int main(int argc,char* argv[]) {
     double avg_err = 0, max_err = 0, min_err = 100;
     double avg_time = 0, max_time = 0, min_time = 10000000000;
     double avg_thr = 0, max_thr = 0, min_thr = 10000000000;
-    int total_len = 0;
-    double avg_frac = 0;
     int avg_HIT = 0;
 
     Evaluation *eva = new Evaluation();
@@ -56,7 +54,7 @@ int main(int argc,char* argv[]) {
     // std::cout << "[Message] Finish Insert hash table" << std::endl;
     std::cout << "[Message] Total packets: " << sum << std::endl;
     
-    int HIT = 0;
+    uint HIT = 0;
     for (auto it = diff.begin(); it != diff.end(); it++)
     {
         HIT += abs(it->second);
@@ -98,7 +96,7 @@ int main(int argc,char* argv[]) {
     myvector results;
     results.clear();
     t1 = Evaluation::now_us();
-    int value = 0, all = 0, hit = 0, size = 0;
+    uint value = 0, all = 0, hit = 0, size = 0;
     error = 0;
     for(auto it = diff.begin();it != diff.end();++it){
         value = std::abs((int)sketch1->PointQuery(it->first) - (int)sketch2->PointQuery(it->first));

@@ -26,14 +26,13 @@ int main(int argc,char* argv[]) {
     std::string file = "../../data/data.pcap";
 
     double error,ae;
-    double avg_aae = 0, max_ae = 0, min_ae = 10000000000;
     double avg_err = 0, max_err = 0, min_err = 100;
     double avg_thr = 0, max_thr = 0, min_thr = 10000000000;
 
 
     double avg_error_1 = 0.0, avg_error_10=0.0,avg_error_100=0.0,avg_error_1000=0.0;
     double avg_error_10000 = 0.0, avg_error_100000=0.0;
-    val_tp small = 0, middle = 0, large = 0;
+    val_tp small = 0, large = 0;
     double ARE_S = 0.0, ARE_M = 0.0, ARE_L = 0.0;
     Evaluation *eva = new Evaluation();
     
@@ -69,7 +68,6 @@ int main(int argc,char* argv[]) {
     int m_num = ground.size() * 0.8;
     int l_num = ground.size() * 0.99;
     small = groundvec[m_num].second;
-    middle = groundvec[m_num].second;
     large = groundvec[l_num].second;
     groundvec.clear();
 
@@ -82,7 +80,6 @@ int main(int argc,char* argv[]) {
     double t1=0, t2=0;
     adaptor->Reset();
     t1 = Evaluation::now_us();
-    std::set<key_tp> mid_key;
     while(adaptor->GetNext(&t) == 1) {
         // key_tp key = ((uint64_t)t.src_ip << 32) | t.dst_ip;
         key_tp key = t.src_ip;
@@ -167,7 +164,6 @@ int main(int argc,char* argv[]) {
     std::cout<<" "<<ARE_S<<" "<<ARE_M<<" "<<ARE_L<<std::endl;
 
     avg_err += error;
-    avg_aae += ae;
     avg_thr += throughput;
     min_err = min_err > error ? error : min_err;
     max_err = max_err < error ? error : max_err;

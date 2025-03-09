@@ -25,7 +25,7 @@ int main(int argc,char* argv[]) {
     std::string file = "../../data/data.pcap";
 
     Evaluation *eva = new Evaluation();
-    double avg_wmre = 0, avg_maxQE = 0;
+    double avg_wmre = 0;
 
     InputAdaptor* adaptor =  new InputAdaptor("", file, buf_size);
     std::cout << "[Dataset]: " << file << std::endl;
@@ -46,7 +46,7 @@ int main(int argc,char* argv[]) {
 
     std::unordered_map<val_tp,val_tp> distall;// real flow size distribution
     distall.clear();
-    int maxfre=0; // the max frequency
+    uint maxfre=0; // the max frequency
     for(auto it = ground.begin(); it != ground.end(); ++it) {
         maxfre=maxfre<it->second?it->second:maxfre;
         distall[it->second]++; // update real fsd
@@ -71,8 +71,7 @@ int main(int argc,char* argv[]) {
     estdist.clear();
     for(auto it = ground.begin(); it != ground.end(); ++it)
     {
-        int val = sketch->PointQuery(it->first);
-        double re=1.0*abs((long)it->second - (long)val)/it->second;    
+        uint val = sketch->PointQuery(it->first);
         estdist[val]++; 
         maxfre=maxfre<val?val:maxfre;
         

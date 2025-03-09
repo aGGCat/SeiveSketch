@@ -47,7 +47,7 @@ int main(int argc,char* argv[]) {
 
     std::unordered_map<val_tp,val_tp> distall;// real flow size distribution
     distall.clear();
-    int maxfre=0; // the max frequency
+    uint maxfre=0; // the max frequency
     for(auto it = ground.begin(); it != ground.end(); ++it) {
         maxfre=maxfre<it->second?it->second:maxfre;
         distall[it->second]++; // update real fsd
@@ -75,11 +75,9 @@ int main(int argc,char* argv[]) {
     estdist.clear();
     for(auto it = ground.begin(); it != ground.end(); ++it)
     {
-        int val = sketch->query(it->first);
-        double re=1.0*abs((long)it->second - (long)val)/it->second;    
+        uint val = sketch->query(it->first);
         estdist[val]++; 
         maxfre=maxfre<val?val:maxfre;
-        
     }
 
     // Analysis  Weighted Mean Relative Error (WMRE)  of flow size distribution (item frequency distribution)

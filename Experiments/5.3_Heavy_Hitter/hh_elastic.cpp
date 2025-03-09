@@ -17,7 +17,7 @@ int main(int argc,char* argv[]) {
 
     unsigned long long buf_size = 1000000000;
     int total_memory = 128;
-    int threshold;
+    uint threshold;
     int heavy_memory = total_memory * 1024 / 4;
     // int bucket_num = heavy_memory / 64;
     int bucket_num = atoi(argv[1]);
@@ -32,8 +32,7 @@ int main(int argc,char* argv[]) {
     double avg_err = 0, max_err = 0, min_err = 100;
     double avg_time = 0, max_time = 0, min_time = 10000000000;
     double avg_thr = 0, max_thr = 0, min_thr = 10000000000;
-    int total_len = 0;
-    double avg_hh = 0, avg_frac = 0;
+    double avg_hh = 0;
 
     Evaluation *eva = new Evaluation();
 

@@ -18,7 +18,7 @@ int main(int argc,char* argv[]) {
     int depth = 3;
     int memory = atoi(argv[1]);
     
-    int threshold;
+    uint threshold;
     int width = (memory*1024 - 24 * 128)/depth/4;//each bucket occupies 4B
     
     std::string file = "../../data/data.pcap";
@@ -30,8 +30,7 @@ int main(int argc,char* argv[]) {
     double avg_err = 0, max_err = 0, min_err = 100;
     double avg_time = 0, max_time = 0, min_time = 10000000000;
     double avg_thr = 0, max_thr = 0, min_thr = 10000000000;
-    int total_len = 0;
-    double avg_hh = 0, avg_frac = 0;
+    double avg_hh = 0;
 
     Evaluation *eva = new Evaluation();
 

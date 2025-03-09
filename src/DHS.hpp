@@ -410,7 +410,7 @@ public:
         int num3 = (usage>>8) & 15;
         int num4 = (usage>>16) & 15;
         int num2 = 16 - num4*2 - num3*3/2;
-        int usage2 = usage & 255;
+        // int usage2 = usage & 255;
         // if(hash == 887087494)
         //     std::cout<<num2<<" "<<num3<<" "<<num4<<std::endl;
             //level 4
@@ -485,7 +485,7 @@ public:
         int num3 = (usage>>8) & 15;
         int num4 = (usage>>16) & 15;
         int num2 = 16 - num4*2 - num3*3/2;
-        int usage2 = usage & 255;
+        // int usage2 = usage & 255;
             //level 4
         int start = num2*2+num3*3;
         int end = start + num4*4;

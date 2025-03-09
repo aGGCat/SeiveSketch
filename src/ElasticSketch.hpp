@@ -7,7 +7,6 @@
 #include <iostream>
 #include "../lib/datatypes.hpp"
 #include "../lib/param.h"
-#include "../lib/EM.h"
 #include "sketch_base.hpp"
 #include <set>
 
@@ -184,56 +183,6 @@ class ESketch : public SketchBase {
         }
     }
 
-    void light_get_distribution(std::vector<double> &dist) {
-        uint32_t tmp_cnt[es_.counter_num];
-        for(int i = 0; i < es_.counter_num; ++i) {
-            tmp_cnt[i] = es_.counters[i];
-        }
-        em_ = new EMFSD();
-        em_->set_counters(es_.counter_num, tmp_cnt);
-
-        em_->next_epoch();
-        em_->next_epoch();
-       	em_->next_epoch();
-     	em_->next_epoch();
-     	em_->next_epoch();
-      	em_->next_epoch();
-       	em_->next_epoch();
-     	em_->next_epoch();
-   		em_->next_epoch();
-        em_->next_epoch();
-
-        dist = em_->ns;
-    }
-
-    void get_distribution(vector<double> &dist)
-    {
-        light_get_distribution(dist);
-
-        for(int i = 0; i < es_.bucket_num; ++i){
-            for(int j = 0; j < MAX_VALID_COUNTER; ++j)
-            {
-                uint32_t key = es_.buckets[i].key[j];
-                int val = es_.buckets[i].val[j];
-
-                int ex_val = LightPart_query(key);
-
-                if(HIGHEST_BIT_IS_1(val) && ex_val != 0)
-                {
-                    val += ex_val;
-                    dist[ex_val]--;
-                }
-                val = GetCounterVal(val);
-                if(val)
-                {
-                    if(val + 1 > dist.size())
-                        dist.resize(val + 1);
-                    dist[val]++;
-                }
-            }
-        }
-    }
-
     void Reset() {
         memset(es_.buckets, 0, sizeof(Bucket) * es_.bucket_num);
         memset(es_.counters, 0, es_.counter_num);
@@ -247,7 +196,6 @@ private:
 
     //Sketch data structure
     ES_type es_;
-    EMFSD *em_ = NULL;
 };
 
 #endif

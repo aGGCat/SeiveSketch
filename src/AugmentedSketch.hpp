@@ -96,14 +96,13 @@ public:
             return;
         }
 
-        uint est;
+        uint est = UINT32_MAX;
         for (int i = 0; i < as_.depth; i++)
         {
             uint off = MurmurHash64A((unsigned char*)(&key),sizeof(key_tp),as_.hash[i]) % (uint)as_.width;
             uint index = i * as_.width + off;
             as_.counter[index] += val;
-            if(i == 0) est = as_.counter[index];
-            else est = min(est,as_.counter[index]);
+            est = min(est,as_.counter[index]);
         }
 
         if(est > (uint)min_v) {
@@ -143,13 +142,12 @@ public:
             }
         }
 
-        uint est;
+        uint est = UINT32_MAX;
         for (int i = 0; i < as_.depth; i++)
         {
             uint off = MurmurHash64A((unsigned char*)(&key),sizeof(key_tp),as_.hash[i]) % (uint)as_.width;
             uint index = i * as_.width + off;
-            if(i == 0) est = as_.counter[index];
-            else est = min(est,as_.counter[index]);
+            est = min(est,as_.counter[index]);
         }
 
         return est;

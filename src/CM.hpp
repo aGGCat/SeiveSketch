@@ -70,7 +70,7 @@ public:
             else result = std::min(result, ccm_.counts[index]);
         }
         // std::cout << "threshold = " << threshold << "\t result = " << result << std::endl;
-        if (ccm_.thre != 0 && result > ccm_.thre) {
+        if (ccm_.thre != 0 && result > (val_tp)ccm_.thre) {
             std::pair<key_tp, val_tp> node(key, result);
             //If heap is empty
             if (heap_.size() == 0) {
@@ -86,7 +86,7 @@ public:
                 // std::cout<<"it->second"<<std::endl;
                 //Node is not in the heap, insert it
                 if (it == heap_.end()) {
-                    if(heap_.size() < ccm_.thre) {
+                    if((int)heap_.size() < ccm_.thre) {
                         heap_.push_back(node);
                         std::push_heap(heap_.begin(), heap_.end(), less_comparer_desc);
                         return;

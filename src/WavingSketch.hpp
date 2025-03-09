@@ -126,7 +126,7 @@ class WavingSketch : public SketchBase {
     val_tp PointQuery(key_tp key) {
         uint32_t pos = MurmurHash64A((unsigned char*)&key,ws_.lgn,ws_.hash[0]) % ws_.BUCKET_NUM;
         // uint32_t choice = MurmurHash2((unsigned char*)&key,ws_.lgn/8,ws_.hash[1]) & 1;
-        uint32_t whichcast = MurmurHash64A((unsigned char*)&key,ws_.lgn,ws_.hash[2]) % ws_.counter_num;
+        // uint32_t whichcast = MurmurHash64A((unsigned char*)&key,ws_.lgn,ws_.hash[2]) % ws_.counter_num;
         int retv = 0;
 
         for (int i = 0; i < ws_.slot_num; ++i) {

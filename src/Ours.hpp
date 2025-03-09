@@ -21,8 +21,8 @@ class SeiveSketch : public SketchBase {
     public:
     struct Bucket
     {
-        key_tp key[COUNTER_PER_BUCKET];
-        uint32_t val[COUNTER_PER_BUCKET];
+        key_tp key[COUNTERS_PER_BUCKET];
+        uint32_t val[COUNTERS_PER_BUCKET];
     };
     
     struct SS_type {
@@ -59,7 +59,8 @@ class SeiveSketch : public SketchBase {
 
     SeiveSketch(int memory, double h_ratio, double s_ratio, int depth, double frac) {
         //setting parameters of Hot Part
-        ss_.bucket_num = memory * h_ratio / (8 * COUNTER_PER_BUCKET + 4);
+        // each array contain (COUNTERS_PER_BUCKET+1) buckets, the last bucket for negative vote
+        ss_.bucket_num = memory * h_ratio / (8 * COUNTERS_PER_BUCKET + 4);
         ss_.buckets = new Bucket[ss_.bucket_num]();
         ss_.v_s = new uint32_t[ss_.bucket_num]();
         
@@ -105,7 +106,7 @@ class SeiveSketch : public SketchBase {
         uint32_t min_counter_val = GetCounterVal(ss_.buckets[pos].val[0]);
         int min_counter = 0;
         int empty = -1;
-        for(int i = 0; i < COUNTER_PER_BUCKET; i++){
+        for(int i = 0; i < COUNTERS_PER_BUCKET; i++){
             if(ss_.buckets[pos].key[i] == key){
                 ss_.buckets[pos].val[i] += f;
                 return 0;
@@ -466,7 +467,7 @@ class SeiveSketch : public SketchBase {
 
     val_tp PointQuery(key_tp key) {
         int pos = CalculateFP(key);
-        for(int i = 0; i < COUNTER_PER_BUCKET; i++){
+        for(int i = 0; i < COUNTERS_PER_BUCKET; i++){
             if(ss_.buckets[pos].key[i] == key){
                 int res = ss_.buckets[pos].val[i];
                 if(HIGHEST_BIT_IS_1(res)) {
@@ -520,7 +521,7 @@ class SeiveSketch : public SketchBase {
         for(int i=0;i<ss_.filter_num2;i++)
             ss_.L2[i] = 0;
         for(int i=0;i<ss_.bucket_num;i++) {
-            for(int j=0;j<COUNTER_PER_BUCKET;j++) {
+            for(int j=0;j<COUNTERS_PER_BUCKET;j++) {
                 ss_.buckets[i].key[j]=0;
                 ss_.buckets[i].val[j]=0;
             }

@@ -23,10 +23,8 @@ int main(int argc,char* argv[]) {
 
     double error,ae;
     double avg_err = 0, max_err = 0, min_err = 100;
-    double avg_aae = 0, max_ae = 0, min_ae = 10000000000;//Absolute Error
     double avg_thr = 0, max_thr = 0, min_thr = 10000000000;
-    int total_len = 0;
-    val_tp small = 0, middle = 0, large = 0;
+    val_tp small = 0, large = 0;
 
 
     double avg_error_1 = 0.0, avg_error_10=0.0,avg_error_100=0.0,avg_error_1000=0.0;
@@ -67,7 +65,6 @@ int main(int argc,char* argv[]) {
     int m_num = ground.size() * 0.8;
     int l_num = ground.size() * 0.99;
     small = groundvec[m_num].second;
-    middle = groundvec[m_num].second;
     large = groundvec[l_num].second;
     groundvec.clear();
     
@@ -98,12 +95,6 @@ int main(int argc,char* argv[]) {
     for(auto it = ground.begin(); it != ground.end(); it++) {
         int record = sketch->PointQuery(it->first);
         ae += abs((long)it->second - (long)record);
-        if(total_len == 0) {
-            std::ofstream txtfile;
-            txtfile.open("results/point_CF_Est.csv",std::ios::app);
-            txtfile<<it->second<<","<<record<<std::endl;
-            txtfile.close();
-        }
         if(it->second < small) {
             sum_s ++;
             RE_S += 1.0*abs((long)it->second - (long)record)/it->second;
@@ -163,12 +154,9 @@ int main(int argc,char* argv[]) {
 
     // Calculate accuracy
     avg_err += error;
-    avg_aae += ae;
     avg_thr += throughput;
     min_err = min_err > error ? error : min_err;
     max_err = max_err < error ? error : max_err;
-    min_ae = min_ae > ae ? ae : min_ae;
-    max_ae = max_ae < ae ? ae : max_ae;
     min_thr = min_thr > throughput ? throughput : min_thr;
     max_thr = max_thr < throughput ? throughput : max_thr;
 

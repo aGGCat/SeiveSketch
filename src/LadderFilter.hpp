@@ -121,7 +121,7 @@ public:
             }
 
         /* dequeue the LRU item in B1, if is promising item, insert to B2 */
-        if (B1.counter[cols - 1] >= thres2)
+        if (B1.counter[cols - 1] >= (uint)thres2)
         {
             /* if Bucket2 is not full*/
             bool isFull = true;
