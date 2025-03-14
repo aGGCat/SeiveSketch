@@ -188,8 +188,6 @@ class SeiveSketch : public SketchBase {
         ss_.buckets[pos].key[min_counter] = key;
         ss_.buckets[pos].val[min_counter] = 0x80000001;
         return 1;
-
-        return 1;
     }
 
     uint32_t HotPart_query(key_tp key) {
@@ -284,8 +282,6 @@ class SeiveSketch : public SketchBase {
 
         int delta2 = ss_.T2 - v2;
         weight -= delta2;
-        if(weight)
-            WarmPart_insert(key,weight);
         return weight;
     }
 
@@ -387,8 +383,6 @@ class SeiveSketch : public SketchBase {
         }
         int delta2 = ss_.T2 - v2;
         weight -= delta2;
-        if(weight)
-            WarmPart_insert(key,weight);
         return weight;
     }
 
@@ -410,11 +404,12 @@ class SeiveSketch : public SketchBase {
         v1 = v1*1.0/ss_.r0;
     //query filter2; flow size <=255
         uint v2 = UINT32_MAX;
+        uint64_t h2= MurmurHash64A((unsigned char*)&key,ss_.lgn,ss_.hash[1]);
         for(int i = 0; i < ss_.depth; i++) {
-            uint64_t h2= MurmurHash64A((unsigned char*)&key,ss_.lgn,ss_.hash[i]);
             uint index = h2 % ss_.filter_num2;
             uint value = (uint)ss_.L2[index];
             v2 = std::min(v2,value);
+            h2 >>= 4;
         }
 
         if(v2 < ss_.T2)
