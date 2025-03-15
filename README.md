@@ -12,6 +12,7 @@
     - 5.3_Heavy_Hitter: experiments on heavy hitter detection in Section 5.3
     - 5.4_Heavy_Change: experiments on heavy change detection in Section 5.4
     - 5.4_Frequency_Distribution: experiments on item frequency distribution in Section 5.4
+    - Test_parallel: a test on a simple parallelized variant of SeiveSketch
 
 - `src`: the folder contains the source files of sketches.
 
